@@ -6,6 +6,7 @@ import { RainDetails } from './components/RainDetails'
 import { LocationHeader } from './components/LocationHeader'
 import { LoadingState } from './components/LoadingState'
 import { ErrorState } from './components/ErrorState'
+import { SentryTestButton } from './components/SentryTestButton'
 import { useWeather } from './hooks/useWeather'
 import { gsap, useGSAP } from './lib/gsap'
 import type { SkyMood } from './types/weather'
@@ -93,10 +94,11 @@ function App() {
   }
 
   return (
-    <>
+    <div className="relative z-10 flex min-h-screen flex-col">
       <SkyBackground mood={skyMood} />
-      {content}
-    </>
+      <div className="flex-1">{content}</div>
+      <SentryTestButton />
+    </div>
   )
 }
 

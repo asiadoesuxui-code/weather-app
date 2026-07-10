@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { fetchWeather } from '../lib/weather'
 import type { RainForecast } from '../types/weather'
@@ -28,6 +29,10 @@ export function useWeather() {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error'
       console.error('Weather fetch failed:', message, err)
+      Sentry.captureException(err, {
+        tags: { feature: 'weather-fetch' },
+        extra: { lat, lon },
+      })
       setError('Could not load weather. Check your connection and try again.')
       setStatus('error')
     }
