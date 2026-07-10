@@ -1,16 +1,37 @@
+import { useRef } from 'react'
 import type { HourlyForecast } from '../types/weather'
 import { formatTime, weatherCodeEmoji } from '../lib/weather'
+import { gsap, useGSAP } from '../lib/gsap'
 
 interface HourlyForecastListProps {
   hourly: HourlyForecast[]
 }
 
 export function HourlyForecastList({ hourly }: HourlyForecastListProps) {
+  const sectionRef = useRef<HTMLElement>(null)
   const now = new Date()
   const slots = hourly.slice(0, 12)
 
+  useGSAP(
+    () => {
+      gsap.from('[data-animate]', {
+        opacity: 0,
+        y: 20,
+        duration: 0.65,
+        stagger: 0.08,
+        ease: 'power3.out',
+        delay: 0.15,
+      })
+    },
+    { scope: sectionRef, dependencies: [hourly.length] },
+  )
+
   return (
-    <section className="rounded-3xl bg-black/20 p-5 backdrop-blur-md">
+    <section
+      ref={sectionRef}
+      data-animate
+      className="rounded-3xl bg-black/20 p-5 backdrop-blur-md"
+    >
       <h2 className="text-sm font-semibold uppercase tracking-widest text-white/70">
         Next 12 hours
       </h2>
@@ -23,6 +44,7 @@ export function HourlyForecastList({ hourly }: HourlyForecastListProps) {
           return (
             <li
               key={hour.time.toISOString()}
+              data-animate
               className={`flex items-center gap-3 rounded-2xl px-3 py-2.5 transition-colors ${
                 isNow ? 'bg-white/20 ring-1 ring-white/30' : 'bg-white/5'
               }`}

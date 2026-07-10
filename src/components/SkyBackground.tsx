@@ -1,9 +1,7 @@
 import type { SkyMood } from '../types/weather'
-import type { RainIntensity } from '../types/weather'
 
 interface SkyBackgroundProps {
   mood: SkyMood
-  rainIntensity?: RainIntensity
 }
 
 const MOOD_GRADIENTS: Record<SkyMood, string> = {
@@ -18,29 +16,28 @@ const MOOD_GRADIENTS: Record<SkyMood, string> = {
   'night-cloudy': 'from-slate-900 via-slate-800 to-slate-700',
 }
 
-const DROP_COUNTS: Record<RainIntensity, number> = {
-  none: 0,
-  drizzle: 18,
-  light: 35,
-  moderate: 55,
-  heavy: 80,
-}
+const SUN_RAY_COUNT = 10
 
-export function SkyBackground({ mood, rainIntensity = 'none' }: SkyBackgroundProps) {
-  const isRainy = ['drizzle', 'rainy', 'stormy'].includes(mood)
-  const dropCount = isRainy ? DROP_COUNTS[rainIntensity === 'none' ? 'light' : rainIntensity] : 0
+export function SkyBackground({ mood }: SkyBackgroundProps) {
   const showSun = mood === 'sunny'
   const showMoon = mood === 'night-clear'
   const showClouds = ['partly-cloudy', 'cloudy', 'night-cloudy', 'foggy'].includes(mood)
 
   return (
     <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
-      <div
-        className={`absolute inset-0 bg-gradient-to-b transition-all duration-1000 ${MOOD_GRADIENTS[mood]}`}
-      />
+      <div className={`absolute inset-0 bg-gradient-to-b ${MOOD_GRADIENTS[mood]}`} />
 
       {showSun && (
-        <div className="absolute -top-16 right-6 h-44 w-44 rounded-full bg-yellow-300/80 blur-md" />
+        <div className="absolute -top-16 right-6 h-44 w-44">
+          {Array.from({ length: SUN_RAY_COUNT }).map((_, index) => (
+            <div
+              key={index}
+              className="absolute left-1/2 top-1/2 h-28 w-1 -translate-x-1/2 -translate-y-full rounded-full bg-gradient-to-t from-yellow-200/0 via-yellow-200/30 to-yellow-100/50 opacity-25"
+              style={{ rotate: `${index * (360 / SUN_RAY_COUNT)}deg` }}
+            />
+          ))}
+          <div className="absolute inset-0 rounded-full bg-yellow-300/80 blur-md" />
+        </div>
       )}
 
       {showMoon && (
@@ -58,20 +55,6 @@ export function SkyBackground({ mood, rainIntensity = 'none' }: SkyBackgroundPro
       {mood === 'foggy' && (
         <div className="absolute inset-0 bg-white/20 backdrop-blur-[2px]" />
       )}
-
-      {Array.from({ length: dropCount }).map((_, index) => (
-        <span
-          key={index}
-          className="raindrop"
-          style={{
-            left: `${(index * 13) % 100}%`,
-            animationDuration: `${0.5 + (index % 5) * 0.12}s`,
-            animationDelay: `${(index % 12) * 0.1}s`,
-            opacity: mood === 'stormy' ? 0.8 : 0.35 + (index % 4) * 0.12,
-            height: mood === 'stormy' ? '24px' : '18px',
-          }}
-        />
-      ))}
     </div>
   )
 }

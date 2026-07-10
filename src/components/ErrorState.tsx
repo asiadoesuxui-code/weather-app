@@ -1,3 +1,6 @@
+import { useRef } from 'react'
+import { gsap, useGSAP } from '../lib/gsap'
+
 interface ErrorStateProps {
   message: string
   onRetry?: () => void
@@ -7,11 +10,33 @@ interface ErrorStateProps {
 }
 
 export function ErrorState({ message, onRetry, showDemo, onDemo, isLoading }: ErrorStateProps) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useGSAP(
+    () => {
+      gsap.from('[data-animate]', {
+        opacity: 0,
+        y: 20,
+        duration: 0.65,
+        stagger: 0.12,
+        ease: 'power3.out',
+      })
+    },
+    { scope: containerRef },
+  )
+
   return (
-    <div className="relative z-10 flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center text-white">
-      <div className="text-6xl drop-shadow-md">😕</div>
-      <p className="max-w-sm text-lg font-semibold drop-shadow-md">{message}</p>
-      <div className="flex flex-wrap justify-center gap-3">
+    <div
+      ref={containerRef}
+      className="relative z-10 flex min-h-screen flex-col items-center justify-center gap-4 px-6 text-center text-white"
+    >
+      <div data-animate className="text-6xl drop-shadow-md">
+        😕
+      </div>
+      <p data-animate className="max-w-sm text-lg font-semibold drop-shadow-md">
+        {message}
+      </p>
+      <div data-animate className="flex flex-wrap justify-center gap-3">
         {onRetry && (
           <button
             type="button"

@@ -1,3 +1,6 @@
+import { useRef } from 'react'
+import { gsap, useGSAP } from '../lib/gsap'
+
 interface LocationHeaderProps {
   locationName: string
   onRefresh: () => void
@@ -5,15 +8,36 @@ interface LocationHeaderProps {
 }
 
 export function LocationHeader({ locationName, onRefresh, isLoading }: LocationHeaderProps) {
+  const headerRef = useRef<HTMLElement>(null)
+
+  useGSAP(
+    () => {
+      gsap.from('[data-animate]', {
+        opacity: 0,
+        y: -18,
+        duration: 0.7,
+        stagger: 0.12,
+        ease: 'power3.out',
+      })
+    },
+    { scope: headerRef, dependencies: [locationName] },
+  )
+
   return (
-    <header className="flex items-center justify-between">
+    <header ref={headerRef} className="flex items-center justify-between">
       <div>
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60">
+        <p
+          data-animate
+          className="text-xs font-semibold uppercase tracking-[0.2em] text-white/60"
+        >
           Drizzle or Shine
         </p>
-        <h2 className="mt-1 text-lg font-semibold text-white">{locationName}</h2>
+        <h2 data-animate className="mt-1 text-lg font-semibold text-white">
+          {locationName}
+        </h2>
       </div>
       <button
+        data-animate
         type="button"
         onClick={onRefresh}
         disabled={isLoading}

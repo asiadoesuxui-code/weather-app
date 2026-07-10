@@ -1,3 +1,4 @@
+import { useRef } from 'react'
 import type { RainForecast } from '../types/weather'
 import {
   formatMinutes,
@@ -6,6 +7,7 @@ import {
   minutesUntil,
   weatherCodeEmoji,
 } from '../lib/weather'
+import { gsap, useGSAP } from '../lib/gsap'
 
 interface HeroStatusProps {
   forecast: RainForecast
@@ -41,33 +43,75 @@ function getSubline(forecast: RainForecast): string {
 }
 
 export function HeroStatus({ forecast }: HeroStatusProps) {
+  const sectionRef = useRef<HTMLElement>(null)
   const temp = Math.round(forecast.currentTemperature)
-  const emoji = forecast.isRainingNow
-    ? weatherCodeEmoji(forecast.currentWeatherCode, forecast.isDay)
-    : weatherCodeEmoji(forecast.currentWeatherCode, forecast.isDay)
+  const emoji = weatherCodeEmoji(forecast.currentWeatherCode, forecast.isDay)
+
+  useGSAP(
+    () => {
+      gsap.from('[data-animate]', {
+        opacity: 0,
+        y: 32,
+        duration: 0.8,
+        stagger: 0.1,
+        ease: 'power3.out',
+      })
+
+      const emojiEl = sectionRef.current?.querySelector('.hero-emoji')
+      if (emojiEl) {
+        gsap.to(emojiEl, {
+          y: -8,
+          duration: 3,
+          repeat: -1,
+          yoyo: true,
+          ease: 'sine.inOut',
+          delay: 0.8,
+        })
+      }
+    },
+    { scope: sectionRef, dependencies: [forecast.locationName] },
+  )
 
   return (
-    <section className="text-center">
-      <div className="animate-float mb-2 text-7xl sm:text-8xl">{emoji}</div>
+    <section ref={sectionRef} className="text-center">
+      <div data-animate className="hero-emoji mb-2 text-7xl sm:text-8xl">
+        {emoji}
+      </div>
 
-      <p className="text-6xl font-extrabold tracking-tight text-white drop-shadow-md sm:text-7xl">
+      <p
+        data-animate
+        className="text-6xl font-extrabold tracking-tight text-white drop-shadow-md sm:text-7xl"
+      >
         {temp}°
       </p>
 
-      <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-white drop-shadow-sm sm:text-4xl">
+      <h1
+        data-animate
+        className="mt-2 text-3xl font-extrabold tracking-tight text-white drop-shadow-sm sm:text-4xl"
+      >
         {getHeadline(forecast)}
       </h1>
 
-      <p className="mt-2 text-lg font-semibold text-white/90">{forecast.currentCondition}</p>
-      <p className="mt-1 text-base font-medium text-white/80">{getSubline(forecast)}</p>
+      <p data-animate className="mt-2 text-lg font-semibold text-white/90">
+        {forecast.currentCondition}
+      </p>
+      <p data-animate className="mt-1 text-base font-medium text-white/80">
+        {getSubline(forecast)}
+      </p>
 
       {forecast.currentIntensity !== 'none' && (
-        <p className="mt-2 text-sm font-semibold uppercase tracking-widest text-white/70">
+        <p
+          data-animate
+          className="mt-2 text-sm font-semibold uppercase tracking-widest text-white/70"
+        >
           {intensityLabel(forecast.currentIntensity)}
         </p>
       )}
 
-      <p className="mx-auto mt-6 max-w-md rounded-2xl bg-black/20 px-5 py-4 text-left text-sm leading-relaxed text-white/95 backdrop-blur-sm">
+      <p
+        data-animate
+        className="mx-auto mt-6 max-w-md rounded-2xl bg-black/20 px-5 py-4 text-left text-sm leading-relaxed text-white/95 backdrop-blur-sm"
+      >
         {forecast.verbalSummary}
       </p>
     </section>
