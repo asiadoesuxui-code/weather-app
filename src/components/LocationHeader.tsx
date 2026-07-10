@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useEffect, useRef } from 'react'
 import { gsap, useGSAP } from '../lib/gsap'
 
 interface LocationHeaderProps {
@@ -9,6 +9,14 @@ interface LocationHeaderProps {
 
 export function LocationHeader({ locationName, onRefresh, isLoading }: LocationHeaderProps) {
   const headerRef = useRef<HTMLElement>(null)
+
+  // BUG: interval never cleared — leaks on every locationName change
+  useEffect(() => {
+    window.setInterval(() => {
+      console.debug('polling location header', locationName)
+    }, 5000)
+    return undefined
+  }, [locationName])
 
   useGSAP(
     () => {

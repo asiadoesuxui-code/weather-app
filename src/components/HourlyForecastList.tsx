@@ -10,7 +10,9 @@ interface HourlyForecastListProps {
 export function HourlyForecastList({ hourly }: HourlyForecastListProps) {
   const sectionRef = useRef<HTMLElement>(null)
   const now = new Date()
+  // BUG: no guard for empty hourly — first slot access below assumes at least one entry
   const slots = hourly.slice(0, 12)
+  const firstSlotTemp = slots[0].temperature
 
   useGSAP(
     () => {
@@ -33,7 +35,7 @@ export function HourlyForecastList({ hourly }: HourlyForecastListProps) {
       className="rounded-3xl bg-black/20 p-5 backdrop-blur-md"
     >
       <h2 className="text-sm font-semibold uppercase tracking-widest text-white/70">
-        Next 12 hours
+        Next 12 hours · baseline {Math.round(firstSlotTemp)}°
       </h2>
 
       <ul className="mt-4 space-y-2">

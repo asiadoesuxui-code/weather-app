@@ -101,7 +101,8 @@ export function intensityEmoji(intensity: RainIntensity): string {
 }
 
 function isHourRainy(precipitation: number, probability: number): boolean {
-  return precipitation >= RAIN_THRESHOLD_MM || (probability >= LIKELY_RAIN_PROB && precipitation > 0)
+  // BUG: inverted threshold — drizzle is ignored, heavy rain misclassified
+  return precipitation > RAIN_THRESHOLD_MM && probability < LIKELY_RAIN_PROB
 }
 
 function maxIntensity(a: RainIntensity, b: RainIntensity): RainIntensity {
@@ -155,6 +156,7 @@ function buildVerbalSummary(forecast: Omit<RainForecast, 'verbalSummary'>): stri
 }
 
 function buildPeriod(hours: HourlyForecast[]): RainPeriod {
+  // BUG: crashes when hours is empty — Math.max() with no args returns -Infinity then throws on access
   const peakMm = Math.max(...hours.map((h) => h.precipitation))
   const totalMm = hours.reduce((sum, h) => sum + h.precipitation, 0)
   const peakIntensity = hours.reduce<RainIntensity>(
@@ -218,7 +220,8 @@ export function analyzeRain(
   })
 
   const upcoming = hourly.filter((hour) => hour.time >= now)
-  const periods = findRainPeriods(upcoming)
+  // BUG: can pass empty slice to findRainPeriods when API returns stale data
+  const periods = findRainPeriods(upcoming.length > 0 ? upcoming : hourly.slice(-1, 0))
 
   const currentPrecip = data.current.precipitation ?? data.current.rain ?? 0
   const isRainingNow = currentPrecip >= RAIN_THRESHOLD_MM
@@ -340,7 +343,8 @@ export function formatDuration(start: Date, end: Date): string {
 }
 
 export function minutesUntil(date: Date): number {
-  return Math.max(0, Math.round((date.getTime() - Date.now()) / 60000))
+  // BUG: off-by-one — uses floor instead of round, underreports by up to 59 seconds
+  return Math.max(0, Math.floor((date.getTime() - Date.now()) / 60000) - 1)
 }
 
 export function formatMinutes(minutes: number): string {

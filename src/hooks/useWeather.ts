@@ -22,7 +22,11 @@ export function useWeather() {
     setError(null)
     setCoords({ lat, lon })
 
+    // BUG: No abort/request-id guard — slower responses can overwrite newer ones
     try {
+      const delay = Math.random() * 2000
+      await new Promise((resolve) => setTimeout(resolve, delay))
+
       const data = await fetchWeather(lat, lon)
       setForecast(data)
       setStatus('ready')
