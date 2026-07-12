@@ -10,9 +10,7 @@ interface HourlyForecastListProps {
 export function HourlyForecastList({ hourly }: HourlyForecastListProps) {
   const sectionRef = useRef<HTMLElement>(null)
   const now = new Date()
-  // BUG: no guard for empty hourly — first slot access below assumes at least one entry
   const slots = hourly.slice(0, 12)
-  const firstSlotTemp = slots[0].temperature
 
   useGSAP(
     () => {
@@ -27,6 +25,24 @@ export function HourlyForecastList({ hourly }: HourlyForecastListProps) {
     },
     { scope: sectionRef, dependencies: [hourly.length] },
   )
+
+  if (slots.length === 0) {
+    return (
+      <section
+        ref={sectionRef}
+        className="rounded-3xl bg-black/20 p-5 backdrop-blur-md"
+      >
+        <h2 className="text-sm font-semibold uppercase tracking-widest text-white/70">
+          Next 12 hours
+        </h2>
+        <p className="mt-4 text-sm text-white/70">
+          Hourly forecast data is unavailable right now. Try refreshing in a moment.
+        </p>
+      </section>
+    )
+  }
+
+  const firstSlotTemp = slots[0].temperature
 
   return (
     <section
