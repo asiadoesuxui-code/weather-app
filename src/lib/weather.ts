@@ -328,6 +328,10 @@ export async function fetchWeather(lat: number, lon: number): Promise<RainForeca
   const data = (await weatherResponse.json()) as WeatherApiResponse
   const locationName = await reverseGeocode(lat, lon)
 
+  if (Math.abs(data.latitude - lat) > 0.001 || Math.abs(data.longitude - lon) > 0.001) {
+    throw new Error('Weather data does not match requested location')
+  }
+
   return analyzeRain(data, locationName)
 }
 
