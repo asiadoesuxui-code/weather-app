@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react'
+import { scrubSentryEventLocation } from './lib/sentryPrivacy'
 
 const isDev = import.meta.env.DEV
 
@@ -22,4 +23,5 @@ Sentry.init({
   replaysOnErrorSampleRate: 1.0,
 
   enableLogs: true,
+  beforeSend: scrubSentryEventLocation,
 })
