@@ -1,20 +1,17 @@
 interface SentryBreadcrumb {
   message?: string
-  data?: Record<string, unknown>
-  [key: string]: unknown
+  data?: unknown
 }
 
 interface SentryRequest {
   url?: string
   query_string?: unknown
-  [key: string]: unknown
 }
 
 interface SentryLikeEvent {
   extra?: Record<string, unknown>
   request?: SentryRequest
   breadcrumbs?: SentryBreadcrumb[]
-  [key: string]: unknown
 }
 
 const LOCATION_PARAM_NAMES = new Set(['lat', 'lon', 'latitude', 'longitude'])
@@ -86,7 +83,10 @@ function scrubBreadcrumb(breadcrumb: SentryBreadcrumb): SentryBreadcrumb {
     typeof breadcrumb.message === 'string'
       ? scrubLocationParams(breadcrumb.message)
       : breadcrumb.message
-  const data = breadcrumb.data ? scrubData(breadcrumb.data) : breadcrumb.data
+  const data =
+    breadcrumb.data && typeof breadcrumb.data === 'object' && !Array.isArray(breadcrumb.data)
+      ? scrubData(breadcrumb.data as Record<string, unknown>)
+      : breadcrumb.data
 
   if (message === breadcrumb.message && data === breadcrumb.data) {
     return breadcrumb
