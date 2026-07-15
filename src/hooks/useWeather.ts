@@ -35,7 +35,6 @@ export function useWeather() {
       console.error('Weather fetch failed:', message, err)
       Sentry.captureException(err, {
         tags: { feature: 'weather-fetch' },
-        extra: { lat, lon },
       })
       setError('Could not load weather. Check your connection and try again.')
       setStatus('error')
