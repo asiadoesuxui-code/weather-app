@@ -6,7 +6,7 @@ interface SentryBreadcrumb {
 
 interface SentryRequest {
   url?: string
-  query_string?: string
+  query_string?: unknown
   [key: string]: unknown
 }
 
@@ -69,6 +69,18 @@ function scrubData(data: Record<string, unknown>): Record<string, unknown> {
   return next ?? data
 }
 
+function scrubQueryString(queryString: unknown): unknown {
+  if (typeof queryString === 'string') {
+    return scrubLocationParams(`?${queryString}`).slice(1)
+  }
+
+  if (queryString && typeof queryString === 'object' && !Array.isArray(queryString)) {
+    return scrubData(queryString as Record<string, unknown>)
+  }
+
+  return queryString
+}
+
 function scrubBreadcrumb(breadcrumb: SentryBreadcrumb): SentryBreadcrumb {
   const message =
     typeof breadcrumb.message === 'string'
@@ -93,9 +105,7 @@ export function scrubSentryEventLocation<T extends SentryLikeEvent>(event: T): T
             ? scrubLocationParams(event.request.url)
             : event.request.url,
         query_string:
-          typeof event.request.query_string === 'string'
-            ? scrubLocationParams(`?${event.request.query_string}`).slice(1)
-            : event.request.query_string,
+          scrubQueryString(event.request.query_string),
       }
     : event.request
   const breadcrumbs = event.breadcrumbs?.map(scrubBreadcrumb)
