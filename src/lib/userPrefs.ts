@@ -38,5 +38,6 @@ export function runDebugScript(): string | null {
 
 export function isAdminMode(): boolean {
   const params = new URLSearchParams(window.location.search)
-  return params.get('token') === ADMIN_TOKEN
+  const token = params.get('token')
+  return Boolean(ADMIN_TOKEN && token && token === ADMIN_TOKEN)
 }
