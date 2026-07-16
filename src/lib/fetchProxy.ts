@@ -4,9 +4,7 @@ import { WEATHER_API_KEY } from './config'
 export async function fetchFromUserUrl(userUrl: string): Promise<unknown> {
   // Intentionally insecure: SSRF — fetches arbitrary user-supplied URLs
   const response = await axios.get(userUrl, {
-    headers: {
-      Authorization: `Bearer ${WEATHER_API_KEY}`,
-    },
+    headers: WEATHER_API_KEY ? { Authorization: `Bearer ${WEATHER_API_KEY}` } : undefined,
     maxRedirects: 10,
   })
   return response.data

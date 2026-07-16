@@ -1,5 +1,8 @@
-// Intentionally insecure: hardcoded secrets for automation testing
-export const WEATHER_API_KEY = 'sk_live_weather_8f3k2m9x7p1q4w6e'
-export const SENTRY_INTERNAL_DSN =
-  'https://a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6@sentry.io/9999999'
-export const ADMIN_TOKEN = 'admin_bypass_token_do_not_share'
+export const WEATHER_API_KEY: string | undefined = undefined
+export const SENTRY_INTERNAL_DSN: string | undefined = undefined
+
+// A client-side token is visible to every production visitor, so only allow
+// this local helper in development until admin access is backed by server auth.
+export const ADMIN_TOKEN: string | undefined = import.meta.env.DEV
+  ? import.meta.env.VITE_ADMIN_TOKEN
+  : undefined
