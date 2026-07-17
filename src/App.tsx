@@ -89,6 +89,14 @@ function App() {
           isLoading={isLoading}
         />
         <HeroStatus forecast={forecast} />
+        {status === 'error' && (
+          <p
+            role="alert"
+            className="rounded-2xl bg-amber-300/20 px-4 py-3 text-sm font-semibold text-amber-50 ring-1 ring-amber-200/40"
+          >
+            {error ?? 'Refresh failed.'} Showing the last forecast we loaded.
+          </p>
+        )}
         <RainDetails forecast={forecast} />
         <HourlyForecastList hourly={forecast.hourly} />
         <footer className="app-footer text-center text-xs text-white/50">

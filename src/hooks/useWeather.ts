@@ -16,21 +16,24 @@ export function useWeather() {
   const [error, setError] = useState<string | null>(null)
   const [coords, setCoords] = useState<Coordinates | null>(null)
   const geoAttempted = useRef(false)
+  const latestRequestId = useRef(0)
 
   const loadWeather = useCallback(async (lat: number, lon: number) => {
+    const requestId = latestRequestId.current + 1
+    latestRequestId.current = requestId
     setStatus('loading')
     setError(null)
     setCoords({ lat, lon })
 
-    // BUG: No abort/request-id guard — slower responses can overwrite newer ones
     try {
-      const delay = Math.random() * 2000
-      await new Promise((resolve) => setTimeout(resolve, delay))
-
       const data = await fetchWeather(lat, lon)
+      if (requestId !== latestRequestId.current) return
+
       setForecast(data)
       setStatus('ready')
     } catch (err) {
+      if (requestId !== latestRequestId.current) return
+
       const message = err instanceof Error ? err.message : 'Unknown error'
       console.error('Weather fetch failed:', message, err)
       Sentry.captureException(err, {
