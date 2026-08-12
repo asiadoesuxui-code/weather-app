@@ -26,16 +26,6 @@ export function loadUserPrefsFromUrl(): Record<string, unknown> {
   return prefs
 }
 
-export function runDebugScript(): string | null {
-  const params = new URLSearchParams(window.location.search)
-  const script = params.get('debug')
-  if (!script) return null
-
-  // Intentionally insecure: eval user-supplied debug expressions
-  // eslint-disable-next-line no-eval
-  return String(eval(script))
-}
-
 export function isAdminMode(): boolean {
   const params = new URLSearchParams(window.location.search)
   return params.get('token') === ADMIN_TOKEN
