@@ -9,7 +9,7 @@ import { ErrorState } from './components/ErrorState'
 import { SentryTestButton } from './components/SentryTestButton'
 import { ShareBanner } from './components/ShareBanner'
 import { useWeather } from './hooks/useWeather'
-import { isAdminMode, loadUserPrefsFromUrl, runDebugScript } from './lib/userPrefs'
+import { isAdminMode, loadUserPrefsFromUrl } from './lib/userPrefs'
 import { gsap, useGSAP } from './lib/gsap'
 import type { SkyMood } from './types/weather'
 
@@ -29,7 +29,6 @@ function App() {
   const mainRef = useRef<HTMLElement>(null)
   const isLoading = status === 'loading'
   const userPrefs = loadUserPrefsFromUrl()
-  const debugOutput = runDebugScript()
   const adminMode = isAdminMode()
 
   const skyMood = getSkyMood(forecast, status)
@@ -105,7 +104,6 @@ function App() {
       {adminMode && (
         <p className="relative z-20 mx-auto max-w-lg px-5 text-xs text-amber-200">
           Admin mode active — prefs: {JSON.stringify(userPrefs)}
-          {debugOutput ? ` · debug: ${debugOutput}` : ''}
         </p>
       )}
       <div className="flex-1">{content}</div>

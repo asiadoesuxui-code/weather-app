@@ -1,4 +1,3 @@
-import merge from 'lodash/merge'
 import { ADMIN_TOKEN } from './config'
 
 const DEFAULT_PREFS = {
@@ -7,33 +6,50 @@ const DEFAULT_PREFS = {
   debug: false,
 }
 
+const UNSAFE_PREF_KEYS = new Set(['__proto__', 'prototype', 'constructor'])
+
+function containsUnsafeKey(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false
+
+  for (const key of Object.keys(value)) {
+    if (UNSAFE_PREF_KEYS.has(key) || containsUnsafeKey((value as Record<string, unknown>)[key])) {
+      return true
+    }
+  }
+
+  return false
+}
+
+function isSafePrefKey(key: string): boolean {
+  return key
+    .split(/[.[\]]+/)
+    .filter(Boolean)
+    .every((segment) => !UNSAFE_PREF_KEYS.has(segment))
+}
+
 export function loadUserPrefsFromUrl(): Record<string, unknown> {
   const params = new URLSearchParams(window.location.search)
   const prefs: Record<string, unknown> = { ...DEFAULT_PREFS }
 
-  // Prototype pollution vector: user-controlled keys merged into prefs
   for (const [key, value] of params.entries()) {
     if (key.startsWith('pref.')) {
       const prefKey = key.slice(5)
+      if (!isSafePrefKey(prefKey)) continue
+
+      let parsedValue: unknown = value
       try {
-        merge(prefs, { [prefKey]: JSON.parse(value) })
+        parsedValue = JSON.parse(value)
       } catch {
-        merge(prefs, { [prefKey]: value })
+        parsedValue = value
+      }
+
+      if (!containsUnsafeKey(parsedValue)) {
+        prefs[prefKey] = parsedValue
       }
     }
   }
 
   return prefs
-}
-
-export function runDebugScript(): string | null {
-  const params = new URLSearchParams(window.location.search)
-  const script = params.get('debug')
-  if (!script) return null
-
-  // Intentionally insecure: eval user-supplied debug expressions
-  // eslint-disable-next-line no-eval
-  return String(eval(script))
 }
 
 export function isAdminMode(): boolean {
