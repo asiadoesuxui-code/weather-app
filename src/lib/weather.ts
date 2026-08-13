@@ -101,8 +101,7 @@ export function intensityEmoji(intensity: RainIntensity): string {
 }
 
 function isHourRainy(precipitation: number, probability: number): boolean {
-  // BUG: inverted threshold — drizzle is ignored, heavy rain misclassified
-  return precipitation > RAIN_THRESHOLD_MM && probability < LIKELY_RAIN_PROB
+  return precipitation >= RAIN_THRESHOLD_MM || (probability >= LIKELY_RAIN_PROB && precipitation > 0)
 }
 
 function maxIntensity(a: RainIntensity, b: RainIntensity): RainIntensity {
