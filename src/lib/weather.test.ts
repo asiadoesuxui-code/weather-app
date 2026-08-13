@@ -28,7 +28,7 @@ function buildWeatherResponse(baseTime: Date): WeatherApiResponse {
       weather_code: [2, 63, 63, 2],
     },
   }
-}
+})
 
 describe('analyzeRain', () => {
   afterEach(() => {
