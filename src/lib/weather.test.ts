@@ -28,7 +28,7 @@ function buildWeatherResponse(baseTime: Date): WeatherApiResponse {
       weather_code: [2, 63, 63, 2],
     },
   }
-})
+}
 
 describe('analyzeRain', () => {
   afterEach(() => {
@@ -51,4 +51,4 @@ describe('analyzeRain', () => {
     expect(forecast.clearUntil).toEqual(new Date('2026-08-13T13:00:00.000Z'))
     expect(forecast.verbalSummary).toContain('Rain is expected')
   })
-}
+})
