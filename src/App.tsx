@@ -33,6 +33,10 @@ function App() {
   const adminMode = isAdminMode()
 
   const skyMood = getSkyMood(forecast, status)
+  const staleRefreshError =
+    status === 'error' && forecast
+      ? error ?? 'The latest weather update failed.'
+      : null
 
   useGSAP(
     () => {
@@ -88,6 +92,25 @@ function App() {
           onRefresh={refresh}
           isLoading={isLoading}
         />
+        {staleRefreshError && (
+          <section
+            role="alert"
+            className="rounded-3xl bg-amber-400/20 p-4 text-white ring-1 ring-amber-200/40 backdrop-blur-md"
+          >
+            <p className="text-sm font-bold">Could not refresh weather</p>
+            <p className="mt-1 text-sm text-white/80">
+              {staleRefreshError} The forecast below is from the last successful update.
+            </p>
+            <button
+              type="button"
+              onClick={refresh}
+              disabled={isLoading}
+              className="mt-3 rounded-full bg-white px-4 py-2 text-xs font-bold text-slate-800 disabled:opacity-60"
+            >
+              {isLoading ? 'Loading…' : 'Try again'}
+            </button>
+          </section>
+        )}
         <HeroStatus forecast={forecast} />
         <RainDetails forecast={forecast} />
         <HourlyForecastList hourly={forecast.hourly} />
