@@ -10,9 +10,27 @@ import type {
 
 const RAIN_THRESHOLD_MM = 0.05
 const LIKELY_RAIN_PROB = 55
+const WEATHER_REQUEST_TIMEOUT_MS = 15000
 
 const DEMO_LOCATIONS: Record<string, string> = {
   '51.51,-0.13': 'London, England',
+}
+
+function createTimeoutSignal(timeoutMs: number): {
+  signal: AbortSignal
+  clear: () => void
+} {
+  const controller = new AbortController()
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs)
+
+  return {
+    signal: controller.signal,
+    clear: () => clearTimeout(timeoutId),
+  }
+}
+
+function isAbortError(error: unknown): boolean {
+  return error instanceof Error && error.name === 'AbortError'
 }
 
 export function getIntensity(mm: number): RainIntensity {
@@ -281,7 +299,11 @@ function fallbackLocationName(lat: number, lon: number): string {
   return DEMO_LOCATIONS[key] ?? `${lat.toFixed(2)}°, ${lon.toFixed(2)}°`
 }
 
-export async function reverseGeocode(lat: number, lon: number): Promise<string> {
+export async function reverseGeocode(
+  lat: number,
+  lon: number,
+  signal?: AbortSignal,
+): Promise<string> {
   try {
     const url = new URL('https://geocoding-api.open-meteo.com/v1/reverse')
     url.searchParams.set('latitude', String(lat))
@@ -289,7 +311,7 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string> 
     url.searchParams.set('language', 'en')
     url.searchParams.set('count', '1')
 
-    const response = await fetch(url)
+    const response = await fetch(url, { signal })
     if (!response.ok) return fallbackLocationName(lat, lon)
 
     const data = (await response.json()) as GeocodingResponse
@@ -303,36 +325,47 @@ export async function reverseGeocode(lat: number, lon: number): Promise<string> 
 }
 
 export async function fetchWeather(lat: number, lon: number): Promise<RainForecast> {
-  const url = import.meta.env.DEV
-    ? new URL('/api/weather', window.location.origin)
-    : new URL('https://api.open-meteo.com/v1/forecast')
+  const requestTimeout = createTimeoutSignal(WEATHER_REQUEST_TIMEOUT_MS)
 
-  url.searchParams.set('latitude', String(lat))
-  url.searchParams.set('longitude', String(lon))
-  url.searchParams.set(
-    'hourly',
-    'precipitation,precipitation_probability,rain,weather_code,temperature_2m',
-  )
-  url.searchParams.set(
-    'current',
-    'precipitation,rain,weather_code,temperature_2m,is_day',
-  )
-  url.searchParams.set('forecast_days', '2')
-  url.searchParams.set('timezone', 'auto')
+  try {
+    const url = import.meta.env.DEV
+      ? new URL('/api/weather', window.location.origin)
+      : new URL('https://api.open-meteo.com/v1/forecast')
 
-  const weatherResponse = await fetch(url.toString())
-  if (!weatherResponse.ok) {
-    throw new Error(`Weather API error: ${weatherResponse.status}`)
+    url.searchParams.set('latitude', String(lat))
+    url.searchParams.set('longitude', String(lon))
+    url.searchParams.set(
+      'hourly',
+      'precipitation,precipitation_probability,rain,weather_code,temperature_2m',
+    )
+    url.searchParams.set(
+      'current',
+      'precipitation,rain,weather_code,temperature_2m,is_day',
+    )
+    url.searchParams.set('forecast_days', '2')
+    url.searchParams.set('timezone', 'auto')
+
+    const weatherResponse = await fetch(url.toString(), { signal: requestTimeout.signal })
+    if (!weatherResponse.ok) {
+      throw new Error(`Weather API error: ${weatherResponse.status}`)
+    }
+
+    const data = (await weatherResponse.json()) as WeatherApiResponse
+    const locationName = await reverseGeocode(lat, lon, requestTimeout.signal)
+
+    if (Math.abs(data.latitude - lat) > 0.001 || Math.abs(data.longitude - lon) > 0.001) {
+      throw new Error('Weather data does not match requested location')
+    }
+
+    return analyzeRain(data, locationName)
+  } catch (error) {
+    if (isAbortError(error)) {
+      throw new Error('Weather request timed out')
+    }
+    throw error
+  } finally {
+    requestTimeout.clear()
   }
-
-  const data = (await weatherResponse.json()) as WeatherApiResponse
-  const locationName = await reverseGeocode(lat, lon)
-
-  if (Math.abs(data.latitude - lat) > 0.001 || Math.abs(data.longitude - lon) > 0.001) {
-    throw new Error('Weather data does not match requested location')
-  }
-
-  return analyzeRain(data, locationName)
 }
 
 export function formatTime(date: Date): string {
