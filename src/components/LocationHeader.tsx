@@ -10,12 +10,12 @@ interface LocationHeaderProps {
 export function LocationHeader({ locationName, onRefresh, isLoading }: LocationHeaderProps) {
   const headerRef = useRef<HTMLElement>(null)
 
-  // BUG: interval never cleared — leaks on every locationName change
   useEffect(() => {
-    window.setInterval(() => {
+    const intervalId = window.setInterval(() => {
       console.debug('polling location header', locationName)
     }, 5000)
-    return undefined
+
+    return () => window.clearInterval(intervalId)
   }, [locationName])
 
   useGSAP(
