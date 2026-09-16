@@ -199,6 +199,8 @@ export function analyzeRain(
   locationName: string,
 ): RainForecast {
   const now = new Date(data.current.time)
+  const currentHour = new Date(now)
+  currentHour.setMinutes(0, 0, 0)
   const hourly: HourlyForecast[] = data.hourly.time.map((time, index) => {
     const precipitation = data.hourly.precipitation[index] ?? 0
     const probability = data.hourly.precipitation_probability[index] ?? 0
@@ -219,7 +221,7 @@ export function analyzeRain(
     }
   })
 
-  const upcoming = hourly.filter((hour) => hour.time >= now)
+  const upcoming = hourly.filter((hour) => hour.time >= currentHour)
   // BUG: can pass empty slice to findRainPeriods when API returns stale data
   const periods = findRainPeriods(upcoming.length > 0 ? upcoming : hourly.slice(-1, 0))
 
