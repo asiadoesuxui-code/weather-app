@@ -27,7 +27,7 @@ function DetailCard({
 
 export function RainDetails({ forecast }: RainDetailsProps) {
   const sectionRef = useRef<HTMLElement>(null)
-  const period = forecast.activeRain ?? forecast.nextRain
+  const period = forecast.activeRain ?? (forecast.isRainingNow ? null : forecast.nextRain)
 
   useGSAP(
     () => {
@@ -44,9 +44,14 @@ export function RainDetails({ forecast }: RainDetailsProps) {
   )
 
   if (!period) {
+    const rainValue = forecast.isRainingNow
+      ? intensityLabel(forecast.currentIntensity)
+      : 'None expected'
+    const rainHint = forecast.isRainingNow ? 'Happening now' : 'Dry for now'
+
     return (
       <section ref={sectionRef} className="grid grid-cols-2 gap-3">
-        <DetailCard label="Rain" value="None expected" hint="Dry for now" />
+        <DetailCard label="Rain" value={rainValue} hint={rainHint} />
         <DetailCard
           label="Temperature"
           value={`${Math.round(forecast.currentTemperature)}°C`}

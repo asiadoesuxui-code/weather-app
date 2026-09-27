@@ -23,11 +23,15 @@ function getHeadline(forecast: RainForecast): string {
 }
 
 function getSubline(forecast: RainForecast): string {
-  if (forecast.isRainingNow && forecast.activeRain) {
-    const endsIn = minutesUntil(forecast.activeRain.end)
-    return endsIn < 60
-      ? `Should ease off ${formatMinutes(endsIn)}`
-      : `Likely until around ${formatTime(forecast.activeRain.end)}`
+  if (forecast.isRainingNow) {
+    if (forecast.activeRain) {
+      const endsIn = minutesUntil(forecast.activeRain.end)
+      return endsIn < 60
+        ? `Should ease off ${formatMinutes(endsIn)}`
+        : `Likely until around ${formatTime(forecast.activeRain.end)}`
+    }
+
+    return 'Rain detected right now'
   }
 
   if (forecast.nextRain) {
