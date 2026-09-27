@@ -231,9 +231,7 @@ export function analyzeRain(
   const isDay = (data.current.is_day ?? 1) === 1
   const currentCondition = weatherCodeLabel(currentWeatherCode)
 
-  const activeRain =
-    periods.find((period) => period.start <= now && period.end > now) ??
-    (isRainingNow && periods[0] ? periods[0] : null)
+  const activeRain = periods.find((period) => period.start <= now && period.end > now) ?? null
 
   const nextRain = periods.find((period) => period.start > now) ?? null
   const nextRainSoon = nextRain ? minutesUntil(nextRain.start) < 120 : false
