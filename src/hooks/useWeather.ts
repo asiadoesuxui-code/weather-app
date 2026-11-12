@@ -42,21 +42,15 @@ export function useWeather() {
     }
   }, [])
 
-  const refresh = useCallback(() => {
-    if (coords) {
-      void loadWeather(coords.lat, coords.lon)
-    }
-  }, [coords, loadWeather])
-
-  useEffect(() => {
-    if (geoAttempted.current) return
-    geoAttempted.current = true
-
+  const requestCurrentLocation = useCallback(() => {
     if (!navigator.geolocation) {
       setError('Geolocation is not supported in this browser.')
       setStatus('error')
       return
     }
+
+    setStatus('loading')
+    setError(null)
 
     navigator.geolocation.getCurrentPosition(
       (position) => {
@@ -73,6 +67,22 @@ export function useWeather() {
       { enableHighAccuracy: false, timeout: 10000 },
     )
   }, [loadWeather])
+
+  const refresh = useCallback(() => {
+    if (coords) {
+      void loadWeather(coords.lat, coords.lon)
+      return
+    }
+
+    requestCurrentLocation()
+  }, [coords, loadWeather, requestCurrentLocation])
+
+  useEffect(() => {
+    if (geoAttempted.current) return
+    geoAttempted.current = true
+
+    requestCurrentLocation()
+  }, [requestCurrentLocation])
 
   return { forecast, status, error, refresh, loadWeather }
 }
